@@ -1,0 +1,105 @@
+# depslib dependency file v1.0
+1744048271 source:c:\users\admin\onedrive\code\fallingbones\audio.cpp
+	"audio.h"
+	<SDL.h>
+	<iostream>
+
+1744048283 c:\users\admin\onedrive\code\fallingbones\audio.h
+	<SDL_mixer.h>
+	<string>
+	"defs.h"
+
+1744023890 c:\users\admin\onedrive\code\fallingbones\defs.h
+
+1744084195 source:c:\users\admin\onedrive\code\fallingbones\game.cpp
+	"game.h"
+	<cstdlib>
+	<string>
+	<iostream>
+
+1744024684 c:\users\admin\onedrive\code\fallingbones\game.h
+	<vector>
+	<SDL.h>
+	"graphics.h"
+	"audio.h"
+	"structs.h"
+	"defs.h"
+
+1744021686 c:\users\admin\onedrive\code\fallingbones\graphics.h
+	<SDL.h>
+	<SDL_image.h>
+	<SDL_ttf.h>
+	<string>
+	<vector>
+	"defs.h"
+
+1743659254 c:\users\admin\onedrive\code\fallingbones\structs.h
+	<SDL_rect.h>
+
+1744021648 source:c:\users\admin\onedrive\code\fallingbones\graphics.cpp
+	"graphics.h"
+	<iostream>
+
+1744046345 source:c:\users\admin\onedrive\code\fallingbones\main.cpp
+	<SDL.h>
+	<iostream>
+	<cstdlib>
+	<ctime>
+	"defs.h"
+	"structs.h"
+	"graphics.h"
+	"audio.h"
+	"game.h"
+
+1744048271 source:c:\users\admin\onedrive\code\game\audio.cpp
+	"audio.h"
+	<SDL.h>
+	<iostream>
+
+1744048283 c:\users\admin\onedrive\code\game\audio.h
+	<SDL_mixer.h>
+	<string>
+	"defs.h"
+
+1744023890 c:\users\admin\onedrive\code\game\defs.h
+
+1744084195 source:c:\users\admin\onedrive\code\game\game.cpp
+	"game.h"
+	<cstdlib>
+	<string>
+	<iostream>
+
+1744024684 c:\users\admin\onedrive\code\game\game.h
+	<vector>
+	<SDL.h>
+	"graphics.h"
+	"audio.h"
+	"structs.h"
+	"defs.h"
+
+1744021686 c:\users\admin\onedrive\code\game\graphics.h
+	<SDL.h>
+	<SDL_image.h>
+	<SDL_ttf.h>
+	<string>
+	<vector>
+	"defs.h"
+
+1743659254 c:\users\admin\onedrive\code\game\structs.h
+	<SDL_rect.h>
+
+1744021648 source:c:\users\admin\onedrive\code\game\graphics.cpp
+	"graphics.h"
+	<iostream>
+
+1744046345 source:c:\users\admin\onedrive\code\game\main.cpp
+	<SDL.h>
+	<iostream>
+	<cstdlib>
+	<ctime>
+	"defs.h"
+	"structs.h"
+	"graphics.h"
+	"audio.h"
+	"game.h"
+
