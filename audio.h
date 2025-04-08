@@ -15,7 +15,6 @@ struct Audio
     Mix_Chunk* gameOverSound = nullptr;
 
     // Functions
-    void logErrorAndExit(const char* msg, const char* error);
     void init();
     void loadSounds();
     void destroy();

@@ -39,6 +39,7 @@ struct Game
     void handleInput(SDL_Event& e, bool& quit, Graphics& graphics, Audio& audio);
     void update(Graphics& graphics, Audio& audio);
     void render(Graphics& graphics);
+    void stopBasketMovement();
 };
 
 #endif // GAME_H

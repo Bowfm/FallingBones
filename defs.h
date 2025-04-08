@@ -7,12 +7,12 @@ const int SCREEN_HEIGHT = 600;
 
 const int BASKET_WIDTH = 100;
 const int BASKET_HEIGHT = 50;
+const int BASKET_SPEED = 8;
 const int ITEM_WIDTH = 40;
 const int ITEM_HEIGHT = 40;
 const int HEART_SIZE = 30;
 const int BUTTON_WIDTH = 150;
 const int BUTTON_HEIGHT = 80;
-const int BASKET_SPEED = 8;
 const int ITEM_SPEED = 3;
 const int ITEM_SPAWN_RATE = 90;
 

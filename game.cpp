@@ -1,5 +1,5 @@
 #include "game.h"
-#include <cstdlib>   // For rand()
+#include <cstdlib>   // rand()
 #include <string>
 #include <iostream>
 
@@ -63,9 +63,7 @@ void Game::handleInput(SDL_Event& e, bool& quit, Graphics& graphics, Audio& audi
                 currentState = GameState::PAUSED;
                 gamePausedConfirm = true;
                 audio.pauseMusic();
-                isLeftKeyDown = false;
-                isRightKeyDown = false;
-                basketVelX = 0;
+                stopBasketMovement();
              }
         }
         // Paused
@@ -79,9 +77,7 @@ void Game::handleInput(SDL_Event& e, bool& quit, Graphics& graphics, Audio& audi
                  gamePausedConfirm = false;
                  audio.haltMusic();
                  items.clear();
-                 isLeftKeyDown = false;
-                 isRightKeyDown = false;
-                 basketVelX = 0;
+                 stopBasketMovement();
              }
         }
         // Game Over
@@ -94,9 +90,7 @@ void Game::handleInput(SDL_Event& e, bool& quit, Graphics& graphics, Audio& audi
                 audio.haltSoundEffects();
                 currentState = GameState::MENU;
                 items.clear();
-                isLeftKeyDown = false;
-                isRightKeyDown = false;
-                basketVelX = 0;
+                stopBasketMovement();
              }
         }
     }
@@ -111,10 +105,8 @@ void Game::handleInput(SDL_Event& e, bool& quit, Graphics& graphics, Audio& audi
                      currentState = GameState::PAUSED;
                      gamePausedConfirm = true;
                      audio.pauseMusic();
-                     isLeftKeyDown = false;
-                     isRightKeyDown = false;
-                     basketVelX = 0;
-                 } else if (currentState == GameState::PAUSED && gamePausedConfirm) {
+                     stopBasketMovement();
+                 } else if (currentState == GameState::PAUSED) {
                       currentState = GameState::PLAYING;
                       gamePausedConfirm = false;
                       audio.resumeMusic();
@@ -130,192 +122,177 @@ void Game::handleInput(SDL_Event& e, bool& quit, Graphics& graphics, Audio& audi
 }
 
 void Game::update(Graphics& graphics, Audio& audio) {
+    // No need to update if not playing
     if (currentState != GameState::PLAYING) {
-        // Đảm bảo vận tốc bằng 0 nếu không chơi
-        // basketVelX = 0; // Không cần thiết nếu đã reset khi pause/menu
         return;
     }
 
-    // 1. Tính toán lại vận tốc dựa trên trạng thái phím hiện tại
-    basketVelX = 0; // Reset vận tốc mỗi frame
+    basketVelX = 0; // Reset velocity every frame
     if (isLeftKeyDown) {
         basketVelX -= BASKET_SPEED;
     }
     if (isRightKeyDown) {
         basketVelX += BASKET_SPEED;
     }
-    // Giờ basketVelX sẽ là -SPEED, 0, hoặc +SPEED tùy thuộc phím nào đang được nhấn
 
-    // 2. Cập nhật vị trí Basket (sử dụng vận tốc vừa tính)
+    // Update basket position
     basketRect.x += basketVelX;
-    // Giữ basket trong màn hình
+    // Ensure that basket is in screen
     if (basketRect.x < 0) {
         basketRect.x = 0;
     } else if (basketRect.x > SCREEN_WIDTH - basketRect.w) {
         basketRect.x = SCREEN_WIDTH - basketRect.w;
     }
 
-    // 3. Spawn Items (Giữ nguyên logic cũ)
+    // Spawn items
     if (rand() % ITEM_SPAWN_RATE == 0) {
-       // ... (code spawn item) ...
        Item newItem;
        newItem.rect.w = ITEM_WIDTH;
        newItem.rect.h = ITEM_HEIGHT;
-       newItem.rect.x = rand() % (SCREEN_WIDTH - newItem.rect.w); // Random X pos within screen bounds
-       newItem.rect.y = -newItem.rect.h; // Start just above the screen
+       newItem.rect.x = rand() % (SCREEN_WIDTH - newItem.rect.w); // Random X position
+       newItem.rect.y = -newItem.rect.h;
        newItem.active = true;
        items.push_back(newItem);
     }
 
-
-    // 4. Update Items (Giữ nguyên logic cũ)
-    for (auto it = items.begin(); it != items.end(); /* no increment here */) {
-         // ... (code di chuyển, kiểm tra va chạm, xóa item) ...
-          if (it->active) {
+    // Update items
+    for (auto it = items.begin(); it != items.end();) {
+        if (it->active) {
             // Move item down
             it->rect.y += ITEM_SPEED;
-
-            // Check for collision (catch) with basket
+            // Check for collision
             if (SDL_HasIntersection(&it->rect, &basketRect)) {
                 score++;
-                graphics.updateScoreTexture(this->score); // Update score display
-                audio.play(audio.catchSound);                   // Play catch sound
-                it->active = false;                       // Deactivate caught item
+                graphics.updateScoreTexture(score);
+                audio.play(audio.catchSound);
+                it->active = false;
             }
-            // Check for miss (item passed below the screen)
+            // Check for miss
             else if (it->rect.y > SCREEN_HEIGHT) {
                 lives--;
-                it->active = false; // Deactivate missed item
+                it->active = false;
                 cout << "Item missed. Lives left: " << lives << endl;
-                // Check for game over immediately after losing a life
+                // Check for game over
                 if (lives <= 0) {
                     currentState = GameState::GAME_OVER;
-                    audio.haltMusic();        // Stop background music
-                    audio.play(audio.gameOverSound); // Play game over sound
+                    audio.haltMusic();
+                    audio.play(audio.gameOverSound);
                     cout << "GAME OVER!" << endl;
-                    // Reset trạng thái di chuyển khi Game Over
-                    isLeftKeyDown = false;
-                    isRightKeyDown = false;
-                    basketVelX = 0;
-                    return; // Exit update function early
+                    stopBasketMovement();
+                    return;
                 }
             }
         }
 
-        // Remove inactive items from the vector
+        // Remove inactive items from vector
         if (!it->active) {
-            it = items.erase(it); // erase returns iterator to the next element
+            it = items.erase(it);
         } else {
-            ++it; // Only increment if the item was not erased
+            ++it; // Increment if item was not erased
         }
     }
 }
 
 void Game::render(Graphics& graphics) {
-    // Rendering logic depends heavily on the current game state
-
+    graphics.renderTexture(graphics.backgroundTexture, nullptr, nullptr);
+    // MENU
     if (currentState == GameState::MENU) {
-        // Render Title (if loaded)
+        // Title
         if (graphics.titleTextTexture) {
-            // Center the title above the play button
             int titleW, titleH;
             SDL_QueryTexture(graphics.titleTextTexture, nullptr, nullptr, &titleW, &titleH);
-            int titleX = (SCREEN_WIDTH - titleW) / 2;
-             // Adjust Y position relative to play button or screen height
-            int titleY = playButtonRect.y - titleH - 30; // 30 pixels above play button
-            if (titleY < 20) titleY = 20; // Ensure it doesn't go off screen top
+            int titleX = (SCREEN_WIDTH - titleW) / 2; // Middle
+            int titleY = playButtonRect.y - titleH - 30; // Above play button
             graphics.renderTexture(graphics.titleTextTexture, titleX, titleY);
         } else {
-            SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "Warning: Title texture not available for rendering.");
+            SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "Title texture not available for rendering.");
         }
 
-        // Render Play button
+        // Play button
         graphics.renderTexture(graphics.playButtonTexture, nullptr, &playButtonRect);
 
     } else if (currentState == GameState::PLAYING || currentState == GameState::PAUSED) {
-        // Render common elements for Playing and Paused states
-
-        // Render Basket
+        // Basket
         graphics.renderTexture(graphics.basketTexture, nullptr, &basketRect);
 
-        // Render Active Items
+        // Active Items
         for (const auto& item : items) {
             if (item.active) {
                 graphics.renderTexture(graphics.itemTexture, nullptr, &item.rect);
             }
         }
 
-        // Render Score
+        // Score
         if (graphics.scoreTextTexture) {
-            // Position score at top-left
             graphics.renderTexture(graphics.scoreTextTexture, 10, 10);
         }
 
-        // Render Hearts (Lives)
-        int heartStartX = 10;
-        int heartStartY = 50; // Below score
+        // Lives
+        int heartX = 10;
+        int heartY = 50;
         for (int i = 0; i < lives; ++i) {
-             SDL_Rect heartDestRect = {heartStartX + i * (HEART_SIZE + 5), heartStartY, HEART_SIZE, HEART_SIZE};
+             SDL_Rect heartDestRect = {heartX + i * HEART_SIZE, heartY, HEART_SIZE, HEART_SIZE};
              graphics.renderTexture(graphics.heartTexture, nullptr, &heartDestRect);
         }
 
-        // Render Pause Button (always visible in playing/paused state)
+        // Pause Button
         graphics.renderTexture(graphics.pauseButtonTexture, nullptr, &pauseButtonRect);
 
-        // --- Specific rendering for PAUSED state ---
-        if (currentState == GameState::PAUSED && gamePausedConfirm) {
-            // 1. Darken background slightly for focus
-            graphics.setDrawBlendMode(SDL_BLENDMODE_BLEND); // Enable blending
+        // PAUSED
+        if (currentState == GameState::PAUSED) {
+            // Darken background
             SDL_Color darkColor = {0, 0, 0, 150}; // Semi-transparent black
+            graphics.setDrawBlendMode(SDL_BLENDMODE_BLEND); // Enable blending
             SDL_Rect screenRect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
             graphics.renderFilledRect(&screenRect, darkColor);
-            graphics.setDrawBlendMode(SDL_BLENDMODE_NONE); // Disable blending for subsequent renders
+            graphics.setDrawBlendMode(SDL_BLENDMODE_NONE); // Disable blending
 
-            // 2. Render "Continue?" text (ensure texture exists)
-             graphics.createPauseTextTexture(); // Create if not already done
+            // "Continue" text
+             graphics.createPauseTextTexture();
              if (graphics.pauseTextTexture) {
                  int textW, textH;
                  SDL_QueryTexture(graphics.pauseTextTexture, nullptr, nullptr, &textW, &textH);
                  int textX = (SCREEN_WIDTH - textW) / 2;
-                 // Position above the Yes/No buttons
-                 int textY = yesButtonRect.y - textH - 30;
+                 int textY = yesButtonRect.y - textH - 30; // Above YES/NO buttons
                  graphics.renderTexture(graphics.pauseTextTexture, textX, textY);
              }
 
-            // 3. Render Yes/No buttons
+            // YES/NO buttons
             graphics.renderTexture(graphics.yesButtonTexture, nullptr, &yesButtonRect);
             graphics.renderTexture(graphics.noButtonTexture, nullptr, &noButtonRect);
         }
 
     } else if (currentState == GameState::GAME_OVER) {
-        // Render Game Over Image (centered)
+        // Game Over
         if (graphics.gameOverTexture) {
             int imgW, imgH;
-            SDL_QueryTexture(graphics.gameOverTexture, nullptr, nullptr, &imgW, &imgH);
-             // Optionally scale it if it's too large/small
-            imgW = 600; imgH = 300; // Example fixed size
+            imgW = 600; imgH = 300; // Scalable
             SDL_Rect gameOverDestRect;
             gameOverDestRect.w = imgW;
             gameOverDestRect.h = imgH;
             gameOverDestRect.x = (SCREEN_WIDTH - imgW) / 2;
-            // Position it above the final score and buttons
-            gameOverDestRect.y = SCREEN_HEIGHT / 2 - imgH + 100 ; // Adjust vertical position as needed
+            gameOverDestRect.y = SCREEN_HEIGHT / 2 - imgH + 100; // Adjustable
             graphics.renderTexture(graphics.gameOverTexture, nullptr, &gameOverDestRect);
         }
 
-
-        // Render Final Score (centered below Game Over image)
+        // Final Score
         if (graphics.scoreTextTexture) {
             int textW, textH;
             SDL_QueryTexture(graphics.scoreTextTexture, nullptr, nullptr, &textW, &textH);
             int scoreX = (SCREEN_WIDTH - textW) / 2;
-             // Position below game over image, above buttons
             int scoreY = restartButtonRect.y - textH - 20;
             graphics.renderTexture(graphics.scoreTextTexture, scoreX, scoreY);
         }
 
-         // Render Restart and Home Buttons
+         // Restart and Home buttons
          graphics.renderTexture(graphics.restartButtonTexture, nullptr, &restartButtonRect);
          graphics.renderTexture(graphics.homeButtonTexture, nullptr, &homeButtonRect);
     }
+}
+
+void Game::stopBasketMovement()
+{
+    isLeftKeyDown = false;
+    isRightKeyDown = false;
+    basketVelX = 0;
 }

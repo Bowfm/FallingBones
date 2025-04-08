@@ -51,7 +51,6 @@ void Graphics::init()
 
 void Graphics::destroy()
 {
-    // Free textures
     SDL_DestroyTexture(backgroundTexture); backgroundTexture = nullptr;
     SDL_DestroyTexture(basketTexture); basketTexture = nullptr;
     SDL_DestroyTexture(itemTexture); itemTexture = nullptr;
@@ -67,7 +66,6 @@ void Graphics::destroy()
     SDL_DestroyTexture(scoreTextTexture); scoreTextTexture = nullptr;
     SDL_DestroyTexture(pauseTextTexture); pauseTextTexture = nullptr;
 
-    // Free fonts
     TTF_CloseFont(font); font = nullptr;
     TTF_CloseFont(titleFont); titleFont = nullptr;
     SDL_DestroyRenderer(renderer); renderer = nullptr;
@@ -91,6 +89,7 @@ SDL_Texture* Graphics::loadTexture(const char* filename)
 
 void Graphics::loadGameTextures()
 {
+    // Load textures
     backgroundTexture = loadTexture(BACKGROUND_IMG);
     basketTexture = loadTexture(BASKET_IMG);
     itemTexture = loadTexture(ITEM_IMG);
@@ -103,7 +102,7 @@ void Graphics::loadGameTextures()
     restartButtonTexture = loadTexture(RESTART_IMG);
     homeButtonTexture = loadTexture(HOME_IMG);
 
-    // Load title
+    // Load title texture
     titleTextTexture = createTextTexture(TITLE, {0, 0, 0, 255}, titleFont);
 
     // Check if all textures loaded successfully

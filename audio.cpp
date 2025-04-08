@@ -2,16 +2,11 @@
 #include <SDL.h>
 #include <iostream>
 
-void Audio::logErrorAndExit(const char* msg, const char* error)
-{
-    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "%s: %s", msg, error);
-    SDL_Quit();
-}
-
 void Audio::init()
 {
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        logErrorAndExit("SDL_mixer could not initialize! Mix_Error", Mix_GetError());
+        SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, "SDL_mixer could not initialize! Mix_Error: %s", Mix_GetError());
+        SDL_Quit();
     }
     cout << "Audio initialized." << endl;
 }
